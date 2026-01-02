@@ -1,90 +1,173 @@
 # 🛡️ GeyserFloodgateFailSafe Plugin
 
-## Plugin này làm gì?
+> **Phiên bản:** 1.0.5 | **Hỗ trợ:** Spigot/Paper 1.16+
 
-Đây là plugin **bảo vệ server Minecraft** của bạn khỏi lỗi đăng nhập khi kết hợp Geyser + Floodgate + AuthMe.
+---
 
-### 📱 Giải thích đơn giản
+## 📖 Plugin này là gì?
 
-Khi bạn chạy server cho phép cả **người chơi Java** (PC) và **người chơi Bedrock** (điện thoại, console) cùng chơi:
+Đây là plugin **bảo vệ tài khoản** cho server Minecraft khi bạn sử dụng **Geyser + Floodgate + AuthMe**.
 
-- **Geyser**: Cho phép người chơi Bedrock kết nối vào server Java
-- **Floodgate**: Thêm prefix (ký tự đặc biệt) vào tên người chơi Bedrock, ví dụ: `PE_Steve` thay vì `Steve`
-- **AuthMe**: Plugin đăng ký/đăng nhập tài khoản
+---
 
-### ⚠️ Vấn đề xảy ra khi không có plugin này
+## 🎮 Giải thích cho người mới (không cần biết code)
 
-Đôi khi Floodgate bị lỗi và **không thêm prefix** vào tên người chơi Bedrock:
+### Bối cảnh: Server "crossplay"
 
-1. Người chơi Bedrock tên `Steve` đáng lẽ phải thành `PE_Steve`
-2. Nhưng do lỗi, họ vẫn vào với tên `Steve` (không có prefix)
-3. AuthMe nghĩ đây là người chơi Java thật
-4. **Tai hại**: Họ có thể chiếm tài khoản của người chơi Java tên `Steve`!
+Bạn muốn cả **người chơi PC** và **người chơi điện thoại** cùng chơi chung 1 server:
+
+| Loại người chơi | Thiết bị | Cách kết nối |
+|-----------------|----------|--------------|
+| **Java Edition** | PC, Mac, Linux | Kết nối trực tiếp |
+| **Bedrock Edition** | Điện thoại, Xbox, Switch, PS | Cần qua **Geyser** |
+
+### Các plugin liên quan
+
+| Plugin | Công dụng |
+|--------|-----------|
+| **Geyser** | Cho phép người chơi Bedrock (điện thoại) kết nối vào server Java |
+| **Floodgate** | Phân biệt người chơi Bedrock bằng cách thêm **ký tự đặc biệt** vào tên, ví dụ: `Steve` → `PE_Steve` |
+| **AuthMe** | Hệ thống đăng ký/đăng nhập tài khoản |
+
+### ⚠️ Vấn đề xảy ra (lý do cần plugin này)
+
+**Đôi khi Floodgate bị lỗi** và không thêm ký tự đặc biệt vào tên người chơi Bedrock:
+
+```
+❌ Trường hợp lỗi:
+   Người chơi Bedrock tên "Steve" 
+   → Đáng lẽ phải thành "PE_Steve"
+   → Nhưng vẫn giữ nguyên "Steve" (do Floodgate lỗi)
+   
+⚠️ Hậu quả:
+   → AuthMe nghĩ đây là người chơi Java tên "Steve"
+   → Nếu có người Java đã đăng ký tên "Steve"
+   → Người Bedrock có thể đăng nhập vào tài khoản đó!
+```
+
+**Nói đơn giản:** Lỗi này có thể khiến người chơi Bedrock **vô tình hoặc cố ý chiếm tài khoản** của người chơi Java!
 
 ### ✅ Plugin này giải quyết như thế nào?
 
-Plugin sẽ **tự động kick (đuổi)** bất kỳ ai:
-- Kết nối qua đường Geyser/Bedrock
-- NHƯNG tên không có prefix đúng (như `PE_`)
+Plugin sẽ **kiểm tra mỗi người kết nối**:
 
-**Kết quả**: Chỉ những người chơi Bedrock có prefix đúng mới được vào server → Bảo vệ tài khoản Java!
+```
+📱 Người vào qua đường Geyser (Bedrock)?
+   ├── Có prefix đúng (PE_Steve)? → ✅ Cho vào
+   └── Không có prefix (Steve)?   → ❌ Kick ra ngay
 
----
+💻 Người vào trực tiếp (Java)?
+   ├── Tên bình thường (Steve)?      → ✅ Cho vào
+   └── Tên có prefix (PE_Steve)?     → ❌ Kick (giả mạo Bedrock)
+```
 
-## 📦 Cài đặt
-
-### Yêu cầu
-- Server Minecraft (Spigot/Paper 1.16+)
-- Plugin Geyser và Floodgate đã cài đặt
-
-### Các bước cài đặt
-
-1. **Tải file plugin** (file `.jar`)
-2. **Copy vào thư mục `plugins`** của server
-3. **Khởi động lại server**
-4. **Mở file cấu hình** tại `plugins/GeyserFloodgateFailSafe/config.yml`
-5. **Chỉnh prefix** cho đúng với Floodgate của bạn (xem bên dưới)
+**Kết quả:** Bảo vệ tài khoản Java khỏi bị chiếm!
 
 ---
 
-## ⚙️ Cấu hình quan trọng
+## 📦 Hướng dẫn cài đặt (5 bước)
 
-Mở file `config.yml` và chỉnh các mục sau:
+### Bước 1: Kiểm tra yêu cầu
 
-### 1️⃣ Prefix (BẮT BUỘC phải đúng!)
+| Yêu cầu | Mô tả |
+|---------|-------|
+| Server | Spigot hoặc Paper phiên bản 1.16 trở lên |
+| Java | Phiên bản 17 trở lên |
+| Plugin | Geyser và Floodgate đã cài đặt |
+
+### Bước 2: Tải plugin
+
+Tải file `GeyserFloodgateFailSafe-1.0.5.jar`
+
+### Bước 3: Cài đặt
+
+1. Mở thư mục server của bạn
+2. Vào thư mục `plugins`
+3. Copy file `.jar` vào đây
+
+### Bước 4: Khởi động server
+
+1. Tắt server (nếu đang chạy)
+2. Bật lại server
+3. Plugin sẽ tự tạo file cấu hình
+
+### Bước 5: Cấu hình (QUAN TRỌNG!)
+
+1. Mở file `plugins/GeyserFloodgateFailSafe/config.yml`
+2. Chỉnh `floodgate-prefix` cho đúng (xem phần bên dưới)
+3. Lưu file
+4. Gõ lệnh `/gffailsafe reload` trong game hoặc restart server
+
+---
+
+## ⚙️ Hướng dẫn cấu hình chi tiết
+
+### 🔴 QUAN TRỌNG NHẤT: Chỉnh Prefix
+
+Mở file `config.yml`, tìm dòng này:
 
 ```yaml
 floodgate-prefix: "PE_"
 ```
 
-**Đây là prefix mà Floodgate thêm vào tên người chơi Bedrock.**
+**Prefix này PHẢI GIỐNG HỆT với cấu hình Floodgate của bạn!**
 
-- Mở file cấu hình Floodgate của bạn để xem prefix là gì
-- Thường là: `PE_`, `.`, `*`, `_`, v.v.
-- ⚠️ **PHẢI GIỐNG HỆT** với cấu hình Floodgate!
+#### Cách tìm prefix của Floodgate:
 
-**Ví dụ:**
-| Cấu hình Floodgate | Cấu hình plugin này |
-|-------------------|---------------------|
+1. Mở file `plugins/floodgate/config.yml`
+2. Tìm dòng `prefix:`
+3. Copy giá trị đó sang plugin này
+
+#### Ví dụ:
+
+| Trong Floodgate | Trong plugin này |
+|-----------------|------------------|
 | `prefix: "PE_"` | `floodgate-prefix: "PE_"` |
 | `prefix: "."` | `floodgate-prefix: "."` |
+| `prefix: "_"` | `floodgate-prefix: "_"` |
 | `prefix: "*"` | `floodgate-prefix: "*"` |
 
-### 2️⃣ Tin nhắn khi bị kick
+⚠️ **Lưu ý:** Nếu prefix là ký tự đặc biệt (như `.` hoặc `*`), hãy để trong dấu ngoặc kép!
+
+---
+
+### 📋 Các tùy chọn khác trong config.yml
+
+#### Chế độ kiểm tra (mode)
+
+```yaml
+mode: "STRICT"
+```
+
+| Chế độ | Mô tả | Khuyến nghị |
+|--------|-------|-------------|
+| `STRICT` | Kiểm tra toàn diện nhất | ✅ Mặc định, an toàn nhất |
+| `API_ONLY` | Chỉ dùng API của Geyser/Floodgate | Dùng khi có lỗi false-positive |
+| `HOST_ONLY` | Chỉ kiểm tra địa chỉ IP | Ít dùng |
+
+**Nếu không chắc, cứ để `STRICT`!**
+
+---
+
+#### Tin nhắn khi bị kick
 
 ```yaml
 kick-message:
-  - "&cLỗi đồng bộ prefix."
+  - "&cInvalid Connection."
   - "&7Vui lòng vào lại sau."
 ```
 
-Bạn có thể thay đổi nội dung tin nhắn. Dùng `&` để đổi màu:
-- `&c` = đỏ
-- `&7` = xám
-- `&a` = xanh lá
-- `&e` = vàng
+Thay đổi nội dung tùy ý. Mã màu:
+- `&c` = 🔴 Đỏ
+- `&e` = 🟡 Vàng  
+- `&a` = 🟢 Xanh lá
+- `&b` = 🔵 Xanh dương
+- `&7` = ⚪ Xám
+- `&f` = ⬜ Trắng
 
-### 3️⃣ Cho phép một số người bỏ qua kiểm tra
+---
+
+#### Danh sách người được bỏ qua (bypass)
 
 ```yaml
 bypass-usernames:
@@ -92,90 +175,176 @@ bypass-usernames:
   - "owner"
 ```
 
-Những tên trong danh sách này sẽ **không bị kiểm tra** (cả Java và Bedrock).
+Những tên này sẽ **KHÔNG bị kiểm tra**. Dùng cho admin hoặc người tin tưởng.
 
-### 4️⃣ Chế độ kiểm tra
+---
+
+#### Ghi log ai bị chặn
 
 ```yaml
-mode: "STRICT"
+blocked-log:
+  enabled: true
+  file: "plugins/GeyserFloodgateFailSafe/blocked.log"
+  include-ip: true
 ```
 
-| Chế độ | Mô tả |
-|--------|-------|
-| `STRICT` | Kiểm tra chặt nhất (khuyến nghị) |
-| `API_ONLY` | Chỉ dùng API Geyser/Floodgate |
-| `HOST_ONLY` | Chỉ kiểm tra địa chỉ IP |
-
-**Nếu không chắc, cứ để `STRICT`.**
+| Tùy chọn | Mô tả |
+|----------|-------|
+| `enabled` | `true` = ghi log, `false` = không ghi |
+| `file` | Đường dẫn file log |
+| `include-ip` | `true` = ghi cả địa chỉ IP |
 
 ---
 
-## 🎮 Lệnh trong game
+#### Chế độ Debug
 
-| Lệnh | Mô tả | Quyền cần có |
-|------|-------|--------------|
-| `/gffailsafe reload` | Tải lại cấu hình | `gffailsafe.admin` |
-| `/gffailsafe status` | Xem trạng thái plugin | `gffailsafe.admin` |
+```yaml
+debug: false
+```
 
----
-
-## 🔐 Quyền (Permissions)
-
-| Quyền | Mô tả |
-|-------|-------|
-| `gffailsafe.admin` | Dùng lệnh `/gffailsafe` |
-| `gffailsafe.exempt` | Bỏ qua kiểm tra (không bị kick) |
+Đổi thành `true` khi cần xem chi tiết hoạt động của plugin (dùng để tìm lỗi).
 
 ---
 
-## 📋 Xem log ai bị chặn
+## 🎮 Lệnh sử dụng
 
-Plugin tự động ghi lại ai bị chặn vào file:
+| Lệnh | Chức năng |
+|------|-----------|
+| `/gffailsafe reload` | Tải lại cấu hình (không cần restart server) |
+| `/gffailsafe status` | Xem trạng thái plugin và API |
+
+**Quyền cần có:** `gffailsafe.admin` (mặc định OP có sẵn)
+
+---
+
+## 🔐 Hệ thống quyền (Permissions)
+
+| Quyền | Chức năng | Mặc định |
+|-------|-----------|----------|
+| `gffailsafe.admin` | Dùng lệnh `/gffailsafe` | OP |
+| `gffailsafe.exempt` | Bỏ qua kiểm tra (không bao giờ bị kick) | Không ai |
+
+---
+
+## 📋 Xem ai đã bị chặn
+
+Mở file:
 ```
 plugins/GeyserFloodgateFailSafe/blocked.log
 ```
 
-Mỗi dòng ghi lại: thời gian, tên người chơi, IP, lý do bị chặn.
+Mỗi dòng ghi lại:
+- ⏰ Thời gian
+- 👤 Tên người chơi
+- 🌐 Địa chỉ IP (nếu bật)
+- ❓ Lý do bị chặn
 
 ---
 
-## ❓ Câu hỏi thường gặp
+## ❓ Câu hỏi thường gặp (FAQ)
 
-### Q: Người chơi Bedrock hợp lệ bị kick, phải làm sao?
-**A:** Kiểm tra xem `floodgate-prefix` đã đúng với Floodgate chưa. Prefix phải **GIỐNG HỆT**.
+### ❓ Người chơi Bedrock hợp lệ bị kick liên tục?
 
-### Q: Tôi muốn tắt plugin tạm thời?
-**A:** Xóa file `.jar` khỏi thư mục plugins và restart server.
+**Nguyên nhân:** Prefix chưa đúng!
 
-### Q: Prefix của tôi là dấu chấm `.` nhưng không hoạt động?
-**A:** Trong file YAML, dấu chấm cần để trong ngoặc kép: `floodgate-prefix: "."`
-
-### Q: Làm sao biết Floodgate prefix của mình là gì?
-**A:** Mở file `plugins/floodgate/config.yml` và tìm dòng `prefix:`.
+**Cách sửa:**
+1. Mở `plugins/floodgate/config.yml` → tìm `prefix:`
+2. Mở `plugins/GeyserFloodgateFailSafe/config.yml`
+3. Chỉnh `floodgate-prefix:` cho GIỐNG HỆT
+4. Gõ `/gffailsafe reload`
 
 ---
 
-## 🔧 Gặp vấn đề?
+### ❓ Prefix là dấu chấm `.` nhưng không hoạt động?
 
-1. Bật chế độ debug trong `config.yml`:
-   ```yaml
-   debug: true
-   ```
-2. Khởi động lại server
-3. Xem log console để biết chi tiết
+**Cách sửa:** Trong file YAML, ký tự đặc biệt cần để trong ngoặc kép:
+
+```yaml
+# ❌ Sai
+floodgate-prefix: .
+
+# ✅ Đúng  
+floodgate-prefix: "."
+```
 
 ---
 
-## 📝 Tóm tắt
+### ❓ Làm sao tắt plugin tạm thời?
+
+**Cách 1:** Xóa/di chuyển file `.jar` khỏi thư mục plugins rồi restart server
+
+**Cách 2:** Để prefix rỗng `""` → Plugin sẽ chặn TẤT CẢ Bedrock (chế độ an toàn tối đa)
+
+---
+
+### ❓ Plugin có ảnh hưởng người chơi Java không?
+
+**Không** - Người chơi Java bình thường không bị ảnh hưởng.
+
+**Ngoại trừ:** Nếu ai đó cố tình đặt tên có prefix (như `PE_Steve`) khi chơi Java → Sẽ bị kick (ngăn giả mạo Bedrock).
+
+---
+
+### ❓ Server dùng proxy (BungeeCord/Velocity)?
+
+Plugin này được thiết kế cho **server đơn** (không có proxy phía trước). Nếu dùng proxy, có thể cần điều chỉnh cấu hình `geyser-source-hosts`.
+
+---
+
+## 🔧 Xử lý sự cố
+
+### Bước 1: Bật chế độ Debug
+
+Mở `config.yml`:
+```yaml
+debug: true
+```
+
+Sau đó gõ `/gffailsafe reload`
+
+### Bước 2: Xem log
+
+Mở console server hoặc file log để xem thông tin chi tiết mỗi lần có người kết nối.
+
+### Bước 3: Kiểm tra trạng thái
+
+Gõ `/gffailsafe status` để xem:
+- Plugin có nhận diện được Geyser/Floodgate không
+- Cấu hình hiện tại
+
+---
+
+## 📝 Tóm tắt tính năng
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| 🛡️ Bảo vệ tài khoản | Ngăn người chơi Bedrock chiếm tài khoản Java |
-| 🔄 Tự động | Hoạt động tự động, không cần can thiệp |
-| 📋 Ghi log | Ghi lại tất cả lần chặn để kiểm tra |
-| ⚙️ Linh hoạt | Nhiều tùy chọn cấu hình |
-| 🎮 Dễ dùng | Chỉ cần cài và chỉnh prefix |
+| 🛡️ **Bảo vệ tài khoản** | Ngăn Bedrock chiếm tài khoản Java khi Floodgate lỗi |
+| 🔒 **Chống giả mạo** | Ngăn Java giả làm Bedrock bằng prefix giả |
+| 🔄 **Tự động hoàn toàn** | Chạy ngầm, không cần can thiệp |
+| 📋 **Ghi log đầy đủ** | Lưu lại mọi lần chặn để kiểm tra |
+| ⚡ **Hiệu suất cao** | Không gây lag server |
+| 🎛️ **Cấu hình linh hoạt** | Nhiều tùy chọn điều chỉnh |
+
+---
+
+## 📌 Checklist sau khi cài đặt
+
+- [ ] Đã copy file `.jar` vào thư mục `plugins`
+- [ ] Đã restart server để tạo file `config.yml`
+- [ ] Đã kiểm tra prefix trong `floodgate/config.yml`
+- [ ] Đã chỉnh `floodgate-prefix` cho đúng
+- [ ] Đã test thử với 1 tài khoản Bedrock
+
+---
+
+## 📞 Cần hỗ trợ?
+
+1. Bật `debug: true` và xem log
+2. Kiểm tra `/gffailsafe status`
+3. Xem file `blocked.log` để biết ai bị chặn và lý do
 
 ---
 
 **Được tạo để bảo vệ server Minecraft của bạn! 🎮🛡️**
+
+*Phiên bản 1.0.5 - Cập nhật: 2026*
