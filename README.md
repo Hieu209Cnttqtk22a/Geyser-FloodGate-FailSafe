@@ -1,6 +1,6 @@
 # 🛡️ GeyserFloodgateFailSafe Plugin
 
-> **Phiên bản:** 1.0.5 | **Hỗ trợ:** Spigot/Paper 1.16+
+> **Hỗ trợ:** Spigot/Paper/Folia 1.16+
 
 ---
 
@@ -347,4 +347,3 @@ Gõ `/gffailsafe status` để xem:
 
 **Được tạo để bảo vệ server Minecraft của bạn! 🎮🛡️**
 
-*Phiên bản 1.0.5 - Cập nhật: 2026*
