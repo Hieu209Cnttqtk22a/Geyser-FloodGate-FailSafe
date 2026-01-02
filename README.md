@@ -1,6 +1,6 @@
 # 🛡️ GeyserFloodgateFailSafe Plugin
 
-> **Hỗ trợ:** Spigot/Paper/Folia 1.16+
+> **Hỗ trợ:** Spigot/Paper/Folia 1.20+
 
 ---
 
